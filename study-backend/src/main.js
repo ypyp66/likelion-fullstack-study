@@ -35,6 +35,6 @@ app.use(ctx => {
 const port = PORT || 4000; //PORT가 있으면 PORT를 넣고 없으면 4000을 넣어라
 
 app.listen(port, () => {
-  console.log(`리스닝 온 뽀뜨 ${port}`);
+  console.log(`리스닝 온 ${port}`);
   //2번째 인자는 함수로 받아서 실행
 });
