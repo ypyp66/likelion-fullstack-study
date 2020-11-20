@@ -3,15 +3,15 @@ import Joi from 'joi'; //400번대 에러에서 씀
 
 export const register = async ctx => {
   const schema = Joi.object().keys({
-    id,
-    password,
+    id: Joi.string.min(5).required(),
+    password: Joi.string.min(5).required(),
     nickname: Joi.string.min(2).required(),
     email: Joi.string().email().required(),
     phoneNum: Joi.string.pattern(/\b\d{11,11}\b/).required(),
     //joi 문법 참고
   });
 
-  const result = schema.validate(ctx.request.body, schema);
+  const result = schema.validate(ctx.request.body);
   //사용자가 압력한 값(ctx.request.body)이 schema(형태)에 부합하는가?
   //return true / false
   if (result.error) {
@@ -89,6 +89,6 @@ export const login = async ctx => {
 };
 
 export const logout = async ctx => {
-  ctx.cookies.get('access_token');
+  ctx.cookies.set('access_token');
   ctx.status = 204; //응답은 성공했으나 반환할 데이터가 없는 경우
 };

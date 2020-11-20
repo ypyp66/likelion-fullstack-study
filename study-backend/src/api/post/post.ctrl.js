@@ -1,8 +1,24 @@
 import Post from '../../models/post';
 import mongoose from 'mongoose';
+import Joi from 'joi'; //형식검증
 
 export const write = async ctx => {
   //ctx에는 request와 response가 담겨있음
+  const schema = Joi.object().keys({
+    author: Joi.string.min(5).required(),
+    title: Joi.string.min(1).required(),
+    category: Joi.string.min(2).required(),
+    photo: Joi.string(),
+    video: Joi.string(),
+    content: Joi.string.min(1).required(),
+    views: Joi.number().default(0),
+    publishedDate: Joi.string().required(),
+  });
+  const result = schema.validate(ctx.request.body, schema);
+  if (result.error) {
+    ctx.status = 400; //Bad request
+    ctx.body = result.error;
+  }
   const { author, title, category, photo, video, content, views, publishedDate } = ctx.request.body;
   const post = new Post({
     //Post 인스턴스 생성
