@@ -1,4 +1,4 @@
-import Comment from '../../models/comment';
+import Comment from 'models/comment';
 
 export const write = async ctx => {
   //댓글 작성 -> 특정 게시글에 대해 작성

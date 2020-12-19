@@ -1,6 +1,6 @@
-import mongoose, { model, Schema } from 'mongoose';
+import { model, Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
-import { func } from 'joi';
+
 //required : true면 반드시 입력해야하는값
 const UserSchema = new Schema({
   id: { type: String, required: true }, //이름
@@ -41,6 +41,6 @@ UserSchema.methods.serialize = function () {
   delete data.password;
   return data;
 };
-const User = mongoose.model('User', UserSchema);
+const User = model('User', UserSchema);
 
 export default User;

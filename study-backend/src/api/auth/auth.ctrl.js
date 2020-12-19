@@ -1,15 +1,17 @@
-import User from '../../model/user';
+import User from 'models/user';
 import Joi from 'joi'; //400번대 에러에서 씀
 
 //회원가입
 //유효성검사 -> 중복값 검사 -> db저장 -> 회원가입 성공
 export const register = async ctx => {
   const schema = Joi.object().keys({
-    id: Joi.string.min(5).required(),
-    password: Joi.string.min(5).required(),
-    nickname: Joi.string.min(2).required(),
+    id: Joi.string().min(5).required(),
+    password: Joi.string().min(5).required(),
+    nickname: Joi.string().min(2).required(),
     email: Joi.string().email().required(),
-    phoneNum: Joi.string.pattern(/\b\d{11,11}\b/).required(),
+    phoneNum: Joi.string()
+      .pattern(/\b\d{11,11}\b/)
+      .required(),
     //joi 문법 참고
   });
 
@@ -106,5 +108,20 @@ export const check = async ctx => {
     ctx.status = 401; //Unauthorized
     return;
   }
+  ctx.body = user;
+};
+
+exports.create = async ctx => {
+  const { id, password, email, nickname, phoneNum, type } = ctx.request.body;
+  const user = new User({ id, password, email, nickname, phoneNum, type });
+
+  try {
+    await user.save();
+  } catch (e) {
+    // HTTP 상태 500 와 Internal Error 라는 메시지를 반환하고,
+    // 에러를 기록합니다.
+    return ctx.throw(500, e);
+  }
+
   ctx.body = user;
 };
