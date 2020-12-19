@@ -3,7 +3,7 @@ import { model, Schema } from 'mongoose';
 const CategorySchema = new Schema({
   categoryName: {
     type: String,
-    enum: ['A', 'B', 'C'],
+    unique: true,
     required: true,
   },
 });

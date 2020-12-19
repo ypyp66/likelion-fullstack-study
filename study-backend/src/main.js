@@ -9,6 +9,10 @@ dotenv.config(); //.env파일에서 설정을 가져옴
 //.env에 올리면 안되는 걸 적고 dotenv.config()로 불러옴
 const { PORT, MONGO_URI } = process.env;
 
+if (!MONGO_URI) {
+  //.env파일이 없으면
+  throw Error('mongodb uri가 존재하지 않습니다');
+}
 async function connectDB() {
   //몽고db연결은 동기적으로 실행해야함
   try {

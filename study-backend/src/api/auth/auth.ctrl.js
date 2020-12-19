@@ -16,8 +16,7 @@ export const register = async ctx => {
   });
 
   const result = schema.validate(ctx.request.body);
-  //사용자가 압력한 값(ctx.request.body)이 schema(형태)에 부합하는가?
-  //return true / false
+  //사용자가 압력한 값(ctx.request.body)이 schema(형태)에 부합하는가? true | false
   if (result.error) {
     ctx.status = 400; //Bad Request
     ctx.body = result.error;
