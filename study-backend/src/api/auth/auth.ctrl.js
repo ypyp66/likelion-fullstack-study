@@ -1,6 +1,8 @@
 import User from '../../model/user';
 import Joi from 'joi'; //400번대 에러에서 씀
 
+//회원가입
+//유효성검사 -> 중복값 검사 -> db저장 -> 회원가입 성공
 export const register = async ctx => {
   const schema = Joi.object().keys({
     id: Joi.string.min(5).required(),
@@ -26,6 +28,7 @@ export const register = async ctx => {
     //try안에를 실행함
 
     const emailExist = await User.findOne({ email }); //없으면 null이 return됨
+    //await를 쓰는 이유는 db와 통신하는데 시간이 걸리기 때문에 비동기적으로 처리하기 위함.
     //findOne은 {}의 값과 같은 값이 있느냐?
     const nicknameExist = await User.findOne({ nickname });
     const phoneNumExist = await User.findOne({ phoneNum });
@@ -58,6 +61,8 @@ export const register = async ctx => {
     ctx.throw(500, e); //DB에 저장하려했으나 에러가 났을때
   }
 };
+
+//로그인
 export const login = async ctx => {
   const { id, password } = ctx.request.body;
 
@@ -74,7 +79,7 @@ export const login = async ctx => {
       ctx.status = 401; //unathourized
       return;
     }
-    const pwdValid = await User.checkPassword(password);
+    const pwdValid = await userid.checkPassword(password);
     //static 메소드 -> 스키마 전체에 던지는 메소드
     //User 스키마 전체에서 찾음
     if (!pwdValid) {
@@ -82,13 +87,24 @@ export const login = async ctx => {
       ctx.status = 401;
       return;
     }
-    ctx.body = User.serialize();
+    ctx.body = userid.serialize();
   } catch (e) {
     ctx.throw(500, e);
   }
 };
 
+//로그아웃
 export const logout = async ctx => {
   ctx.cookies.set('access_token');
   ctx.status = 204; //응답은 성공했으나 반환할 데이터가 없는 경우
+};
+
+export const check = async ctx => {
+  const { user } = ctx.state;
+  if (!user) {
+    //로그인 중이 아님
+    ctx.status = 401; //Unauthorized
+    return;
+  }
+  ctx.body = user;
 };

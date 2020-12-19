@@ -2,6 +2,7 @@ import Post from '../../models/post';
 import mongoose from 'mongoose';
 import Joi from 'joi'; //형식검증
 
+//게시글 작성
 export const write = async ctx => {
   //ctx에는 request와 response가 담겨있음
   const schema = Joi.object().keys({
@@ -39,8 +40,8 @@ export const write = async ctx => {
   }
 };
 
+//게시글 조회
 export const list = async ctx => {
-  //게시글 조회
   try {
     const posts = await Post.find().exec();
     //find()함수 호출 후 exec()를 붙어주어야 서버에 쿼리를 요청함
@@ -50,8 +51,8 @@ export const list = async ctx => {
   }
 };
 
+//특정글 읽기(id로 찾아서 조회)
 export const read = async ctx => {
-  //특정글 읽기(id로 찾아서 조회)
   const { id } = ctx.params; //:id가 params에 담기는듯
   try {
     const post = await Post.findById(id).exec();
@@ -66,6 +67,7 @@ export const read = async ctx => {
   }
 };
 
+//게시물 삭제
 export const remove = async ctx => {
   const { id } = ctx.params; //삭제할 글의 id를 받아옴
   try {
@@ -76,6 +78,7 @@ export const remove = async ctx => {
   }
 };
 
+//게시물 수정
 export const update = async ctx => {
   const { id } = ctx.params;
   try {

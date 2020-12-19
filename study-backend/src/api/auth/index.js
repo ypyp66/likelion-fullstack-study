@@ -1,4 +1,5 @@
 import Router from 'koa-router';
+import * as authCtrl from './auth.ctrl';
 
 const auth = new Router(); // /auth이후의 주소들
 
@@ -12,10 +13,12 @@ const auth = new Router(); // /auth이후의 주소들
 // ~~/api/auth/여기부터작성
 
 //회원가입
-auth.post('/register', ()); 
-// auth.post('/login', ());
-// auth.get('/check', ());
-// auth.post('/logout', ());
+auth.post('/register', authCtrl.register);
+auth.post('/login', authCtrl.login);
+auth.get('/check', authCtrl.check);
+auth.post('/logout', authCtrl.logout);
 
 // auth.patch('/update', ()); //권한이 있는 유저라면 업데이트
 // auth.patch('/delete', ()); //권한이 있는 유저라면 리무브
+
+export default auth;

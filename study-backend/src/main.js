@@ -1,6 +1,9 @@
 import Koa from 'koa';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import Router from 'koa-router';
+import bodyParser from 'koa-bodyparser'; //미들웨어
+import api from './api';
 
 dotenv.config(); //.env파일에서 설정을 가져옴
 //.env에 올리면 안되는 걸 적고 dotenv.config()로 불러옴
@@ -11,6 +14,7 @@ async function connectDB() {
   try {
     //정상적으로 실행되면
     await mongoose.connect(MONGO_URI, {
+      useCreateIndex: true,
       useNewUrlParser: true,
       useFindAndModify: false,
       useUnifiedTopology: true,
@@ -25,12 +29,18 @@ async function connectDB() {
 connectDB(); //이게 정상적으로 실행되기 전엔 밑에 실행하지 말기
 
 const app = new Koa();
-
-// response
-app.use(ctx => {
-  //미들웨어
-  ctx.body = 'Hello kokoa';
+const router = new Router();
+router.get('/', ctx => {
+  ctx.body = '홈';
 });
+router.get('/about', ctx => {
+  ctx.body = '소개';
+});
+
+app.use(bodyParser()); // 라우터 적용 전에 bodyParser 적용
+
+router.use('/api', api.routes());
+app.use(router.routes()).use(router.allowedMethods());
 
 const port = PORT || 4000; //PORT가 있으면 PORT를 넣고 없으면 4000을 넣어라
 

@@ -16,7 +16,7 @@ const UserSchema = new Schema({
 
 UserSchema.methods.setPassword = async function (password) {
   //사용자가 입력한 password를 받아서 암호화 후 return해주는 함수
-  //인스턴스 메소드, 한 사람에 대해서만 작동하므로
+  //인스턴스 메소드, 한 사람에 대해서만 작동하는 함수
   const hash = await bcrypt.hash(password, 10);
   this.password = hash;
   //화살표 함수를 사용하면 this는 UserSchema를 가리키지 못하게됨
@@ -29,7 +29,7 @@ UserSchema.methods.checkPassword = async function (password) {
 };
 
 UserSchema.statics.findByUsername = function (username) {
-  //스태틱 메소드, User스키마 전체에서 동작하므로
+  //스태틱 메소드, User스키마 전체에서 동작하는 함수
   return this.findOne({ username });
   //this는 Userschema를 가리킴
 };
