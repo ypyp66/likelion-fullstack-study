@@ -13,6 +13,7 @@ if (!MONGO_URI) {
   //.env파일이 없으면
   throw Error('mongodb uri가 존재하지 않습니다');
 }
+
 async function connectDB() {
   //몽고db연결은 동기적으로 실행해야함
   try {
@@ -44,7 +45,7 @@ router.get('/about', ctx => {
 app.use(bodyParser()); // 라우터 적용 전에 bodyParser 적용
 
 router.use('/api', api.routes());
-app.use(router.routes()).use(router.allowedMethods());
+app.use(router.routes()).use(router.allowedMethods()); //get이나 post방식 외 방식도 사용가능하게 해줌
 
 const port = PORT || 4000; //PORT가 있으면 PORT를 넣고 없으면 4000을 넣어라
 

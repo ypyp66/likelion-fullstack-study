@@ -1,11 +1,12 @@
 import User from 'models/user';
 import Joi from 'joi'; //400번대 에러에서 씀
+import JWT from 'jsonwebtoken';
 
 //회원가입
 //유효성검사 -> 중복값 검사 -> db저장 -> 회원가입 성공
 export const register = async ctx => {
   const schema = Joi.object().keys({
-    id: Joi.string().min(5).required(),
+    username: Joi.string().min(5).required(),
     password: Joi.string().min(5).required(),
     nickname: Joi.string().min(2).required(),
     email: Joi.string().email().required(),
@@ -13,17 +14,18 @@ export const register = async ctx => {
       .pattern(/\b\d{11,11}\b/)
       .required(),
     //joi 문법 참고
+    type: Joi.string().required(),
   });
 
   const result = schema.validate(ctx.request.body);
-  //사용자가 압력한 값(ctx.request.body)이 schema(형태)에 부합하는가? true | false
+  //사용자가 입력한 값(ctx.request.body)이 schema(형태)에 부합하는가? true | false
   if (result.error) {
     ctx.status = 400; //Bad Request
     ctx.body = result.error;
     return;
   }
   //ctx에 req, res가 둘다 담겨있다
-  const { id, password, nickname, email, phoneNum, type } = ctx.request.body;
+  const { username, password, nickname, email, phoneNum, type } = ctx.request.body;
   //ctx.request.body에 있는 값들을 분리시켜서 넣어줌
   try {
     //try안에를 실행함
@@ -33,7 +35,7 @@ export const register = async ctx => {
     //findOne은 {}의 값과 같은 값이 있느냐?
     const nicknameExist = await User.findOne({ nickname });
     const phoneNumExist = await User.findOne({ phoneNum });
-    const idExist = await User.findOne({ id });
+    const idExist = await User.findOne({ username });
 
     if (emailExist || nicknameExist || phoneNumExist || idExist) {
       //중복되면 안되는데 중복되는 값이 있는가?
@@ -42,7 +44,7 @@ export const register = async ctx => {
     }
     const user = new User({
       //User스키마를 받아옴
-      id,
+      username,
       password, //password (user.js에 있는거) : password(이 파일 안에 있는거)
       email,
       nickname,
@@ -65,19 +67,31 @@ export const register = async ctx => {
 
 //로그인
 export const login = async ctx => {
-  const { id, password } = ctx.request.body;
+  const schema = Joi.object().keys({
+    username: Joi.string().min(2).required(),
+    password: Joi.string().min(5).required(),
+  });
 
-  if (!id || !password) {
+  const result = schema.validate(ctx.request.body);
+  //사용자가 압력한 값(ctx.request.body)이 schema(형태)에 부합하는가? true | false
+  if (result.error) {
+    ctx.status = 400; //Bad Request
+    ctx.body = result.error;
+    return;
+  }
+  const { username, password } = ctx.request.body;
+
+  if (!username || !password) {
     //username이나 password에 아무것도 입력을 안했으면
     ctx.status = 400; //사용자의 잘못된 요청을 처리할 수 없음
     return;
   }
 
   try {
-    const userid = await User.findByUsername(id);
+    const userid = await User.findByUsername(username);
     if (!userid) {
       //db에 id가 없으면
-      ctx.status = 401; //unathourized
+      ctx.status = 402; //unathourized
       return;
     }
     const pwdValid = await userid.checkPassword(password);
@@ -85,10 +99,13 @@ export const login = async ctx => {
     //User 스키마 전체에서 찾음
     if (!pwdValid) {
       //db에 패스워드가 틀렸으면
-      ctx.status = 401;
+      ctx.status = 401; //Unathourized
       return;
     }
-    ctx.body = userid.serialize();
+    console.log(userid);
+    const token = JWT.sign({ id: userid._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    //user의 고유id를 넣어줌, SECRET Key, 7일뒤에 만료됨
+    ctx.body = token;
   } catch (e) {
     ctx.throw(500, e);
   }

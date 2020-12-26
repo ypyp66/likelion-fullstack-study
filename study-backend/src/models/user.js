@@ -2,17 +2,26 @@ import { model, Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
 
 //required : true면 반드시 입력해야하는값
-const UserSchema = new Schema({
-  password: { type: String, required: true },
-  nickname: { type: String, unique: true, required: true },
-  email: { type: String, required: true, unique: true },
-  phoneNum: { type: String, required: true, unique: true },
-  type: {
-    type: String,
-    required: true,
-    enum: ['Admin', 'Users'],
+const UserSchema = new Schema(
+  {
+    username: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    nickname: { type: String, unique: true, required: true },
+    email: { type: String, required: true, unique: true },
+    phoneNum: { type: String, required: true, unique: true },
+    type: {
+      type: String,
+      required: true,
+      enum: ['Admin', 'Users'],
+    },
   },
-});
+  {
+    timestamps: {
+      createdAt: 'createdAt',
+      updatedAt: 'updatedAt',
+    },
+  },
+);
 
 UserSchema.methods.setPassword = async function (password) {
   //사용자가 입력한 password를 받아서 암호화 후 return해주는 함수
@@ -28,9 +37,9 @@ UserSchema.methods.checkPassword = async function (password) {
   return result;
 };
 
-UserSchema.statics.findByUsername = function (username) {
+UserSchema.statics.findByUsername = async function (username) {
   //스태틱 메소드, User스키마 전체에서 동작하는 함수
-  return this.findOne({ username });
+  return await this.findOne({ username });
   //this는 Userschema를 가리킴
 };
 
