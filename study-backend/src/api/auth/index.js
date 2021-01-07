@@ -1,6 +1,5 @@
 import Router from 'koa-router';
 import * as authCtrl from './auth.ctrl';
-
 const auth = new Router(); // /auth이후의 주소들
 
 //auth다음에 http 메소드를 적어줌

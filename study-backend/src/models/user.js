@@ -1,11 +1,11 @@
 import { model, Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
-
+import * as jwt from 'jsonwebtoken';
 //required : true면 반드시 입력해야하는값
 const UserSchema = new Schema(
   {
-    username: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+    username: { type: String, required: true, unique: true }, //user id
+    password: { type: String, required: true }, //user pw
     nickname: { type: String, unique: true, required: true },
     email: { type: String, required: true, unique: true },
     phoneNum: { type: String, required: true, unique: true },
@@ -37,9 +37,9 @@ UserSchema.methods.checkPassword = async function (password) {
   return result;
 };
 
-UserSchema.statics.findByUsername = async function (username) {
+UserSchema.statics.findByUsername = function (username) {
   //스태틱 메소드, User스키마 전체에서 동작하는 함수
-  return await this.findOne({ username });
+  return this.findOne({ username });
   //this는 Userschema를 가리킴
 };
 
@@ -49,6 +49,20 @@ UserSchema.methods.serialize = function () {
   const data = this.toJSON();
   delete data.password;
   return data;
+};
+
+UserSchema.methods.generateToken = function () {
+  //이게 무슨함수인가?
+  const token = jwt.sign(
+    {
+      _id: this.id,
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: '7d', // 7 days
+    },
+  );
+  return token;
 };
 const User = model('User', UserSchema);
 

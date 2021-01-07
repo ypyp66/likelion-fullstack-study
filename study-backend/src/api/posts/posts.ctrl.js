@@ -2,39 +2,55 @@ import Post from 'models/post';
 import mongoose from 'mongoose';
 import Joi from 'joi'; //형식검증
 
+const { ObjectId } = mongoose.Types;
+
+export const checkObjectId = (ctx, next) => {
+  const { id } = ctx.params;
+
+  //올바른 id가 아니라면
+  if (!ObjectId.isValid(id)) {
+    ctx.status = 400;
+    return;
+  }
+  return next();
+};
 //게시글 작성
 export const write = async ctx => {
   //ctx에는 request와 response가 담겨있음
+
+  //Joi를 통한 문법 검증
   const schema = Joi.object().keys({
-    author: Joi.string.min(5).required(),
-    title: Joi.string.min(1).required(),
-    category: Joi.string.min(2).required(),
-    photo: Joi.string(),
-    video: Joi.string(),
-    content: Joi.string.min(1).required(),
-    views: Joi.number().default(0),
-    publishedDate: Joi.string().required(),
+    author: Joi.string().min(5).required(),
+    title: Joi.string().min(1).required(),
+    category: Joi.string().min(2).required(),
+    content: Joi.string().min(1).required(),
+    views: Joi.number().default(0).required(),
   });
-  const result = schema.validate(ctx.request.body, schema);
+  const result = schema.validate(ctx.request.body);
   if (result.error) {
     ctx.status = 400; //Bad request
     ctx.body = result.error;
   }
-  const { author, title, category, photo, video, content, views, publishedDate } = ctx.request.body;
-  const post = new Post({
-    //Post 인스턴스 생성
-    author,
-    title,
-    category,
-    photo,
-    video,
-    content,
-    views,
-    publishedDate,
-  }); //이거를 데이터베이스에 저장할 것
+
+  //입력 값
+  const { author, title, category, content, views } = ctx.request.body;
+  const { user } = ctx.state;
+
   try {
-    await post.save(); //데이터베이스에 저장하는데 시간이 걸리므로 비동기처리를 해줌
-    ctx.body = post;
+    //Post 인스턴스 생성
+    //이거를 데이터베이스에 저장할 것
+    const post = new Post({
+      author,
+      title,
+      category,
+      content,
+      views,
+    });
+    //데이터베이스에 저장하는데 시간이 걸리므로 비동기처리를 해줌
+    await post.save();
+    const data = post.toJSON();
+    //body에 JSON형태로 찍어줌
+    ctx.body = data;
   } catch (e) {
     ctx.throw(500, e); //내부서버오류
   }
@@ -70,19 +86,20 @@ export const read = async ctx => {
 //게시물 삭제
 export const remove = async ctx => {
   const { id } = ctx.params; //삭제할 글의 id를 받아옴
+  console.log(ctx.params);
   try {
-    await Post.findById(id).exec();
+    await Post.findByIdAndRemove(id).exec(); //findByIdAndRemove : id를 찾아서 지움
     ctx.status = 204; //요청은 성공했지만 응답할 데이터가 없는 경우
   } catch (e) {
     ctx.throw(500, e);
   }
 };
 
-//게시물 수정
+//게시물 수정, findByIdAndUpdate() 함수 사용
 export const update = async ctx => {
   const { id } = ctx.params;
   try {
-    const post = await Post.findById(id, ctx.request.body, {
+    const post = await Post.findByIdAndUpdate(id, ctx.request.body, {
       //첫번째는 id, 2번째는 업데이트 내용, 3번째는 업데이트 옵션을 넣어줌
       new: true, //이 값을 설정하면 업데이트된 데이터를 반환함
       //false이면 업데이트 전의 데이터를 반환

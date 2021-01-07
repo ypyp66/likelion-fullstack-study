@@ -1,6 +1,6 @@
 import User from 'models/user';
 import Joi from 'joi'; //400번대 에러에서 씀
-import JWT from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 
 //회원가입
 //유효성검사 -> 중복값 검사 -> db저장 -> 회원가입 성공
@@ -57,6 +57,7 @@ export const register = async ctx => {
 
     //ctx.status = 200; //응답코드가 200
     ctx.body = user.serialize(); //응답body가 user ctx.response.body = user, 응답코드 200번대를 내포
+    const token = userValid.generateToken();
     //암호화된 비밀번호를 제외하고 return
   } catch (e) {
     //ctx.throw(500, e) === res.status(500).send(e)
@@ -88,13 +89,13 @@ export const login = async ctx => {
   }
 
   try {
-    const userid = await User.findByUsername(username);
-    if (!userid) {
+    const userValid = await User.findByUsername(username);
+    if (!userValid) {
       //db에 id가 없으면
       ctx.status = 402; //unathourized
       return;
     }
-    const pwdValid = await userid.checkPassword(password);
+    const pwdValid = await userValid.checkPassword(password);
     //static 메소드 -> 스키마 전체에 던지는 메소드
     //User 스키마 전체에서 찾음
     if (!pwdValid) {
@@ -102,10 +103,14 @@ export const login = async ctx => {
       ctx.status = 401; //Unathourized
       return;
     }
-    console.log(userid);
-    const token = JWT.sign({ id: userid._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    //user의 고유id를 넣어줌, SECRET Key, 7일뒤에 만료됨
-    ctx.body = token;
+    console.log('123', userValid);
+    /*payload = user의 고유id를 넣어줌, SECRET Key, 7일뒤에 만료됨*/
+    ctx.body = userValid.serialize();
+    const token = userValid.generateToken();
+    // ctx.cookies.set('access_token', token, {
+    //   maxAge: 1000 * 60 * 60 * 24 * 7,
+    //   httpOnly: true,
+    // });
   } catch (e) {
     ctx.throw(500, e);
   }
@@ -120,24 +125,23 @@ export const logout = async ctx => {
 export const check = async ctx => {
   const { user } = ctx.state;
   if (!user) {
-    //로그인 중이 아님
-    ctx.status = 401; //Unauthorized
+    ctx.status = 401;
     return;
   }
   ctx.body = user;
 };
 
-exports.create = async ctx => {
-  const { id, password, email, nickname, phoneNum, type } = ctx.request.body;
-  const user = new User({ id, password, email, nickname, phoneNum, type });
+// exports.create = async ctx => {
+//   const { username, password, email, nickname, phoneNum, type } = ctx.request.body;
+//   const user = new User({ username, password, email, nickname, phoneNum, type });
 
-  try {
-    await user.save();
-  } catch (e) {
-    // HTTP 상태 500 와 Internal Error 라는 메시지를 반환하고,
-    // 에러를 기록합니다.
-    return ctx.throw(500, e);
-  }
+//   try {
+//     await user.save();
+//   } catch (e) {
+//     // HTTP 상태 500 와 Internal Error 라는 메시지를 반환하고,
+//     // 에러를 기록합니다.
+//     return ctx.throw(500, e);
+//   }
 
-  ctx.body = user;
-};
+//   ctx.body = user;
+// };
