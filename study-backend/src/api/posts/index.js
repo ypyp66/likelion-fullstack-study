@@ -1,5 +1,4 @@
 import Router from 'koa-router';
-import jwtMiddleware from '../../lib/jwtMiddleware';
 import * as postsCtrl from './posts.ctrl';
 
 const posts = new Router();
